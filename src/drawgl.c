@@ -153,7 +153,7 @@ static int dtx_gl_init(void)
 	glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)load_glfunc("glVertexAttribPointer");
 #endif
 
-	if(!(qbuf = malloc(QBUF_SZ * sizeof *qbuf))) {
+	if((qbuf = malloc(QBUF_SZ * sizeof *qbuf)) == NULL) {
 		return -1;
 	}
 	num_quads = 0;
@@ -216,7 +216,7 @@ void dtx_glyph(int code)
 {
 	struct dtx_glyphmap *gmap;
 
-	if(!dtx_font || !(gmap = dtx_get_font_glyphmap(dtx_font, dtx_font_sz, code))) {
+	if(!dtx_font || (gmap = dtx_get_font_glyphmap(dtx_font, dtx_font_sz, code)) == NULL) {
 		return;
 	}
 	set_glyphmap_texture(gmap);
@@ -239,7 +239,7 @@ static const char *drawchar(const char *str, float *pos_x, float *pos_y, int *sh
 	px = *pos_x;
 	py = *pos_y;
 
-	if((gmap = dtx_proc_char(code, pos_x, pos_y))) {
+	if((gmap = dtx_proc_char(code, pos_x, pos_y)) != NULL) {
 		int idx = code - gmap->cstart;
 
 		set_glyphmap_texture(gmap);
@@ -279,7 +279,7 @@ static void add_glyph(struct glyph *g, float x, float y)
 
 static void flush(void)
 {
-	int vbo;
+	int vbo = 0;
 
 	if(!num_quads) {
 		return;

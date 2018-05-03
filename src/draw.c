@@ -47,7 +47,7 @@ void dtx_color(float r, float g, float b, float a)
 
 void dtx_string(const char *str)
 {
-	dtx_substring(str, 0, strlen(str));
+	dtx_substring(str, 0, (int)strlen(str));
 }
 
 void dtx_substring(const char *str, int start, int end)

@@ -35,6 +35,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "drawtext_impl.h"
 #include "tpool.h"
 
+#pragma warning( disable : 4100)
+
 #define FTSZ_TO_PIXELS(x)	((x) / 64)
 #define MAX_IMG_SIZE		8192
 
@@ -113,13 +115,13 @@ struct dtx_font *dtx_open_font_glyphmap(const char *fname)
 	struct dtx_font *fnt;
 	struct dtx_glyphmap *gmap;
 
-	if(!(fnt = calloc(1, sizeof *fnt))) {
+	if((fnt = calloc(1, sizeof *fnt)) == NULL) {
 		fperror("failed to allocate font structure");
 		return 0;
 	}
 
 	if(fname) {
-		if(!(gmap = dtx_load_glyphmap(fname))) {
+		if((gmap = dtx_load_glyphmap(fname)) == NULL) {
 			free(fnt);
 			return 0;
 		}
@@ -220,7 +222,7 @@ struct dtx_glyphmap *dtx_get_font_glyphmap_range(struct dtx_font *fnt, int sz, i
 	}
 
 	/* not found, create one and add it to the list */
-	if(!(gm = dtx_create_glyphmap_range(fnt, sz, cstart, cend))) {
+	if((gm = dtx_create_glyphmap_range(fnt, sz, cstart, cend)) == NULL) {
 		return 0;
 	}
 	return gm;
@@ -384,29 +386,29 @@ static int calc_distance(struct dtx_glyphmap *gmap, int x, int y, int max_dist)
 
 	/* try the cardinal directions first to find the search bounding box */
 	for(i=0; i<4; i++) {
-		int max_dist = x - startx;
-		for(j=0; j<max_dist; j++) {
+		int max = x - startx;
+		for(j=0; j<max; j++) {
 			if(GET_PIXEL(gmap, x - j, y) != cpix) {
 				startx = x - j;
 				break;
 			}
 		}
-		max_dist = endx + 1 - x;
-		for(j=0; j<max_dist; j++) {
+		max = endx + 1 - x;
+		for(j=0; j<max; j++) {
 			if(GET_PIXEL(gmap, x + j, y) != cpix) {
 				endx = x + j;
 				break;
 			}
 		}
-		max_dist = y - starty;
-		for(j=0; j<max_dist; j++) {
+		max = y - starty;
+		for(j=0; j<max; j++) {
 			if(GET_PIXEL(gmap, x, y - j) != cpix) {
 				starty = y - j;
 				break;
 			}
 		}
-		max_dist = endy + 1 - y;
-		for(j=0; j<max_dist; j++) {
+		max = endy + 1 - y;
+		for(j=0; j<max; j++) {
 			if(GET_PIXEL(gmap, x, y + j) != cpix) {
 				endy = y + j;
 				break;
@@ -477,7 +479,7 @@ int dtx_calc_glyphmap_distfield(struct dtx_glyphmap *gmap)
 		*dptr++ = c < 128 ? 0 : 255;
 	}
 
-	if(!(new_pixels = malloc(num_pixels))) {
+	if((new_pixels = malloc(num_pixels)) == NULL) {
 		fprintf(stderr, "%s: failed to allocate %dx%d pixel buffer\n", __func__, gmap->xsz, gmap->ysz);
 		return -1;
 	}
@@ -669,7 +671,7 @@ struct dtx_glyphmap *dtx_load_glyphmap(const char *fname)
 	FILE *fp;
 	struct dtx_glyphmap *gmap;
 
-	if(!(fp = fopen(fname, "rb"))) {
+	if((fp = fopen(fname, "rb")) == NULL) {
 		return 0;
 	}
 	gmap = dtx_load_glyphmap_stream(fp);
@@ -689,7 +691,7 @@ struct dtx_glyphmap *dtx_load_glyphmap_stream(FILE *fp)
 	int i, max_pixval = 255, num_pixels;
 	int greyscale = 0;
 
-	if(!(gmap = calloc(1, sizeof *gmap))) {
+	if((gmap = calloc(1, sizeof *gmap)) == NULL) {
 		fperror("failed to allocate glyphmap");
 		return 0;
 	}
@@ -720,7 +722,7 @@ struct dtx_glyphmap *dtx_load_glyphmap_stream(FILE *fp)
 
 			} else if((res = sscanf(line + 1, " %d: %fx%f+%f+%f o:%f,%f adv:%f\n",
 							&c, &xsz, &ysz, &x, &y, &orig_x, &orig_y, &adv)) == 8) {
-				if(!(g = malloc(sizeof *g))) {
+				if((g = malloc(sizeof *g)) == NULL) {
 					fperror("failed to allocate glyph");
 					goto err;
 				}
@@ -800,7 +802,7 @@ struct dtx_glyphmap *dtx_load_glyphmap_stream(FILE *fp)
 	}
 
 	num_pixels = gmap->xsz * gmap->ysz;
-	if(!(gmap->pixels = malloc(num_pixels))) {
+	if((gmap->pixels = malloc(num_pixels)) == NULL) {
 		fperror("failed to allocate pixels");
 		goto err;
 	}
@@ -822,13 +824,13 @@ struct dtx_glyphmap *dtx_load_glyphmap_stream(FILE *fp)
 	gmap->cend = max_code + 1;
 	gmap->crange = gmap->cend - gmap->cstart;
 
-	if(!(gmap->glyphs = calloc(gmap->crange, sizeof *gmap->glyphs))) {
+	if((gmap->glyphs = calloc(gmap->crange, sizeof *gmap->glyphs)) == NULL) {
 		fperror("failed to allocate glyph info");
 		goto err;
 	}
 
 	while(glyphs) {
-		struct glyph *g = glyphs;
+		g = glyphs;
 		glyphs = glyphs->next;
 
 		gmap->glyphs[g->code - gmap->cstart] = *g;
@@ -851,7 +853,7 @@ int dtx_save_glyphmap(const char *fname, const struct dtx_glyphmap *gmap)
 	FILE *fp;
 	int res;
 
-	if(!(fp = fopen(fname, "wb"))) {
+	if((fp = fopen(fname, "wb")) == NULL) {
 		fprintf(stderr, "%s: failed to open file: %s: %s\n", __func__, fname, strerror(errno));
 		return -1;
 	}
@@ -1012,7 +1014,7 @@ void dtx_substring_box(const char *str, int start, int end, struct dtx_box *box)
 		px = pos_x;
 		py = pos_y;
 
-		if((gmap = dtx_proc_char(code, &pos_x, &pos_y))) {
+		if((gmap = dtx_proc_char(code, &pos_x, &pos_y)) != NULL) {
 			g = gmap->glyphs + code - gmap->cstart;
 
 			if(px + g->orig_x < x0) {
@@ -1064,7 +1066,7 @@ float dtx_char_pos(const char *str, int n)
 		code = dtx_utf8_char_code(str);
 		str = dtx_utf8_next_char((char*)str);
 
-		if((gmap = dtx_get_font_glyphmap(dtx_font, dtx_font_sz, code))) {
+		if((gmap = dtx_get_font_glyphmap(dtx_font, dtx_font_sz, code)) != NULL) {
 			pos += gmap->glyphs[code - gmap->cstart].advance;
 		}
 	}
@@ -1081,7 +1083,7 @@ int dtx_char_at_pt(const char *str, float pt)
 		int code = dtx_utf8_char_code(str);
 		str = dtx_utf8_next_char((char*)str);
 
-		if((gmap = dtx_get_font_glyphmap(dtx_font, dtx_font_sz, code))) {
+		if((gmap = dtx_get_font_glyphmap(dtx_font, dtx_font_sz, code)) != NULL) {
 			pos += gmap->glyphs[code - gmap->cstart].advance;
 
 			if(fabs(pt - prev_pos) < fabs(pt - pos)) {

@@ -138,7 +138,7 @@ size_t dtx_utf8_from_char_code(int code, char *buf)
 
 	if(!nbytes && buf) {
 		for(i=0; i<(int)nbytes; i++) {
-			int idx = nbytes - i - 1;
+			size_t idx = nbytes - i - 1;
 			int mask, shift, prefix;
 
 			if(idx > 0) {
@@ -164,7 +164,7 @@ size_t dtx_utf8_from_string(const wchar_t *str, char *buf)
 	char *ptr = buf;
 
 	while(*str) {
-		int cbytes = dtx_utf8_from_char_code(*str++, ptr);
+		size_t cbytes = dtx_utf8_from_char_code(*str++, ptr);
 		if(ptr) {
 			ptr += cbytes;
 		}

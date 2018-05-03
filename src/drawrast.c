@@ -81,7 +81,7 @@ static const char *drawchar(const char *str, float *xpos, float *ypos, int *shou
 	px = *xpos;
 	py = *ypos;
 
-	if((gmap = dtx_proc_char(code, xpos, ypos))) {
+	if((gmap = dtx_proc_char(code, xpos, ypos)) != NULL) {
 		int idx = code - gmap->cstart;
 		draw_glyph(gmap->glyphs + idx, px, py);
 	}
